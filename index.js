@@ -28,15 +28,30 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     // db collection
+    const userCollection = client.db("bistroDb").collection("users");
     const menuCollection = client.db("bistroDb").collection("menu");
     const reviewsCollection = client.db("bistroDb").collection("reviews");
     const cartCollection = client.db("bistroDb").collection("carts");
 
+    //user related api
+    //post method  add the user in the database
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      // insert email if user doesnt exists:
+      // you can do this many ways (1. email unique, 2. upsert 3. simple checking)
 
-    //cart collection
+      const query = { email: user.email };
+      const existingUser = await userCollection.findOne(query)
+      if (existingUser) {
+         return res.send({message: 'user exists', insertedId: null})
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
 
+    //cart collection related api
     // add the item email ways in the database
-    app.get('/carts', async (req, res) => {
+    app.get("/carts", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
       const result = await cartCollection.find(query).toArray();
@@ -44,18 +59,18 @@ async function run() {
     });
 
     //for the add the item in the database
-    app.post('/carts',async(req,res)=>{
-       const cartItem = req.body;
-       const result = await cartCollection.insertOne(cartItem);
-       res.send(result);
-    })
+    app.post("/carts", async (req, res) => {
+      const cartItem = req.body;
+      const result = await cartCollection.insertOne(cartItem);
+      res.send(result);
+    });
     // for the delete item in the database
-    app.delete('/carts/:id', async (req, res) => {
+    app.delete("/carts/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
+      const query = { _id: new ObjectId(id) };
       const result = await cartCollection.deleteOne(query);
       res.send(result);
-    })
+    });
 
     //get operation for the menu data pass the client side
     app.get("/menu", async (req, res) => {
@@ -68,8 +83,6 @@ async function run() {
       const result = await reviewsCollection.find().toArray();
       res.send(result);
     });
-
-
 
     await client.db("admin").command({ ping: 1 });
     console.log(
