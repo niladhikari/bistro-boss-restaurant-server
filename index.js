@@ -34,7 +34,7 @@ async function run() {
     const cartCollection = client.db("bistroDb").collection("carts");
 
     //user related api
-    //
+    //get the data in the db and send to the client
     app.get("/users", async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
@@ -53,6 +53,30 @@ async function run() {
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
+
+    //patch method using for the update the user role
+    app.patch('/users/admin/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: 'admin'
+        }
+      }
+      const result = await userCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
+    // delete method for the delete the user in the db
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await userCollection.deleteOne(query);
+
+      res.send(result);
+    })
+
+
 
     //cart collection related api
     // add the item email ways in the database
